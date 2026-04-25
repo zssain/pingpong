@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { CheckCircle, AlertCircle, Ghost, Loader2 } from 'lucide-react'
+import { CheckCircle, AlertCircle, Ghost, Loader2, Pencil } from 'lucide-react'
 import type { HopStamp } from '../types'
 import { verify } from '../lib/crypto'
+import { useIdentityStore } from '../store/identity'
+import { timeAgo } from '../lib/timeago'
 
 interface Props {
   messageId: string
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) {
+  const myPubkey = useIdentityStore((s) => s.pubkey)
   const [hopResults, setHopResults] = useState<(boolean | null)[]>(
     hops.map(() => null),
   )
@@ -50,23 +53,26 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
 
   return (
     <div className="space-y-0">
-      {/* Author entry */}
-      <div className="flex items-start gap-3">
+      {/* Author (origin) entry */}
+      <div className="flex items-start gap-3 animate-fade-in">
         <div className="flex flex-col items-center">
-          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+          <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
             {authorPubkey ? (
-              <CheckCircle size={14} className="text-blue-500" />
+              <Pencil size={13} className="text-blue-500" />
             ) : (
-              <Ghost size={14} className="text-slate-400" />
+              <Ghost size={13} className="text-slate-400" />
             )}
           </div>
           {hops.length > 0 && (
-            <div className="w-px h-6 bg-slate-200" />
+            <div className="w-px flex-1 min-h-[20px] bg-slate-200" />
           )}
         </div>
-        <div className="pb-2 min-w-0">
+        <div className="pb-3 min-w-0">
           <p className="text-sm font-medium text-slate-700 truncate">
             {authorAlias ?? 'anonymous'}
+            {authorPubkey === myPubkey && (
+              <span className="text-xs text-slate-400 font-normal ml-1">(you)</span>
+            )}
           </p>
           <p className="text-xs text-slate-400">wrote this message</p>
         </div>
@@ -76,37 +82,58 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
       {hops.map((hop, i) => {
         const isLast = i === hops.length - 1
         const result = hopResults[i]
-        const time = new Date(hop.receivedAt).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+        const isYou = hop.relayerPubkey === myPubkey
 
         return (
-          <div key={i} className="flex items-start gap-3">
+          <div
+            key={i}
+            className="flex items-start gap-3 animate-fade-in"
+            style={{ animationDelay: `${(i + 1) * 100}ms` }}
+          >
             <div className="flex flex-col items-center">
-              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border text-xs font-bold ${
+                  verifying
+                    ? 'bg-slate-50 border-slate-200 text-slate-400'
+                    : result
+                      ? 'bg-green-50 border-green-200 text-green-600'
+                      : 'bg-amber-50 border-amber-200 text-amber-600'
+                } ${isLast ? 'animate-pulse-slow' : ''}`}
+              >
                 {verifying ? (
-                  <Loader2 size={14} className="text-slate-400 animate-spin" />
+                  <Loader2 size={13} className="animate-spin" />
                 ) : result ? (
-                  <CheckCircle size={14} className="text-green-500" />
+                  <span>{i + 1}</span>
                 ) : (
-                  <AlertCircle size={14} className="text-amber-500" />
+                  <AlertCircle size={13} />
                 )}
               </div>
-              {!isLast && <div className="w-px h-6 bg-slate-200" />}
+              {!isLast && (
+                <div className="w-px flex-1 min-h-[20px] bg-slate-200" />
+              )}
             </div>
-            <div className="pb-2 min-w-0">
-              <p className="text-sm font-medium text-slate-700 truncate">
-                {hop.relayerAlias}
+            <div className="pb-3 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-medium text-slate-700 truncate">
+                  {hop.relayerAlias}
+                  {isYou && (
+                    <span className="text-xs text-slate-400 font-normal ml-1">(you)</span>
+                  )}
+                </p>
+                {!verifying && result && (
+                  <CheckCircle size={12} className="text-green-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-xs text-slate-400">
+                relayed {timeAgo(hop.receivedAt)}
               </p>
-              <p className="text-xs text-slate-400">relayed at {time}</p>
             </div>
           </div>
         )
       })}
 
       {hops.length === 0 && (
-        <p className="text-xs text-slate-400 ml-9">
+        <p className="text-xs text-slate-400 ml-10 animate-fade-in">
           This message hasn't been relayed yet — it only exists on this device.
         </p>
       )}

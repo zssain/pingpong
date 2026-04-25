@@ -3,7 +3,12 @@ import type { Message } from '../types'
 import { timeAgo } from '../lib/timeago'
 import { useUiStore } from '../store/ui'
 
-export function MessageCard({ message }: { message: Message }) {
+interface Props {
+  message: Message
+  index?: number
+}
+
+export function MessageCard({ message, index = 0 }: Props) {
   const openDetail = useUiStore((s) => s.openDetail)
 
   const isSigned = !!message.authorPubkey && !!message.signature
@@ -13,8 +18,9 @@ export function MessageCard({ message }: { message: Message }) {
   return (
     <div
       onClick={() => openDetail(message.id)}
+      style={{ animationDelay: `${index * 50}ms` }}
       className={`rounded-lg border bg-white p-3 animate-card-in cursor-pointer active:bg-slate-50 transition-colors duration-150 ${
-        isAlert ? 'border-l-4 border-l-red-500 border-slate-200' : 'border-slate-200'
+        isAlert ? 'border-l-4 border-l-red-500 border-slate-200 animate-breathe' : 'border-slate-200'
       }`}
     >
       {/* Header */}

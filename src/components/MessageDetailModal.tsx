@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { X, MapPin, Clock, Globe } from 'lucide-react'
+import { X, MapPin, Clock, Globe, Pencil } from 'lucide-react'
 import { useUiStore } from '../store/ui'
+import { useIdentityStore } from '../store/identity'
 import { getMessage } from '../db'
 import { HopChain } from './HopChain'
+import { ComposeModal } from './ComposeModal'
 import { timeAgo } from '../lib/timeago'
 import type { Message } from '../types'
 
@@ -16,7 +18,9 @@ const TYPE_LABELS: Record<Message['type'], { text: string; className: string }> 
 export function MessageDetailModal() {
   const detailMessageId = useUiStore((s) => s.detailMessageId)
   const closeDetail = useUiStore((s) => s.closeDetail)
+  const myPubkey = useIdentityStore((s) => s.pubkey)
   const [message, setMessage] = useState<Message | null>(null)
+  const [editing, setEditing] = useState(false)
 
   const isOpen = detailMessageId !== null
 
@@ -25,14 +29,12 @@ export function MessageDetailModal() {
       getMessage(detailMessageId).then((m) => setMessage(m ?? null))
     } else {
       setMessage(null)
+      setEditing(false)
     }
   }, [detailMessageId])
 
-  // ESC to close
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDetail()
-    },
+    (e: KeyboardEvent) => { if (e.key === 'Escape') closeDetail() },
     [closeDetail],
   )
 
@@ -44,11 +46,15 @@ export function MessageDetailModal() {
   }, [isOpen, handleKeyDown])
 
   const badge = message ? TYPE_LABELS[message.type] : null
-  const ttlRemaining = message
-    ? Math.max(0, message.ttl - Date.now())
-    : 0
+  const ttlRemaining = message ? Math.max(0, message.ttl - Date.now()) : 0
   const ttlHours = Math.floor(ttlRemaining / (1000 * 60 * 60))
   const ttlMinutes = Math.floor((ttlRemaining % (1000 * 60 * 60)) / (1000 * 60))
+
+  const canEdit =
+    message &&
+    message.authorPubkey === myPubkey &&
+    !!message.signature &&
+    !message.hidden
 
   return (
     <>
@@ -70,13 +76,22 @@ export function MessageDetailModal() {
           <>
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
-              {badge && (
-                <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded ${badge.className}`}
-                >
-                  {badge.text}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {badge && (
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${badge.className}`}>
+                    {badge.text}
+                  </span>
+                )}
+                {canEdit && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition-colors duration-150"
+                  >
+                    <Pencil size={11} />
+                    Edit
+                  </button>
+                )}
+              </div>
               <button
                 onClick={closeDetail}
                 className="p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150"
@@ -87,10 +102,15 @@ export function MessageDetailModal() {
 
             {/* Scrollable content */}
             <div className="overflow-y-auto p-4 space-y-4">
-              {/* Hidden / replaced banner */}
+              {/* Status banners */}
               {message.hidden && (
                 <div className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                  This message has been replaced by a newer version.
+                  This post was replaced by a newer version.
+                </div>
+              )}
+              {message.replaces && !message.hidden && (
+                <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                  This is an updated version of an earlier post.
                 </div>
               )}
 
@@ -126,8 +146,7 @@ export function MessageDetailModal() {
                   <Clock size={12} />
                   <span>
                     Created {timeAgo(message.timestamp)} &middot; Expires in{' '}
-                    {ttlHours > 0 ? `${ttlHours}h ` : ''}
-                    {ttlMinutes}m
+                    {ttlHours > 0 ? `${ttlHours}h ` : ''}{ttlMinutes}m
                   </span>
                 </div>
                 {message.zone && (
@@ -144,6 +163,17 @@ export function MessageDetailModal() {
           </>
         )}
       </div>
+
+      {/* Edit compose modal */}
+      {editing && message && (
+        <ComposeModal
+          replaceMessageId={message.id}
+          onCloseReplace={() => {
+            setEditing(false)
+            closeDetail()
+          }}
+        />
+      )}
     </>
   )
 }

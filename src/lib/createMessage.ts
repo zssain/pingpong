@@ -4,6 +4,7 @@ import { useIdentityStore } from '../store/identity'
 import { getOrCreateIdentity } from '../db'
 import { deriveAlias, signMessage } from './identity'
 import { canonicalize, computeMessageId } from './canonical'
+import type { Zone, AlertCategory } from './zones'
 
 interface CreateArgs {
   type: 'news' | 'alert' | 'drop'
@@ -11,17 +12,15 @@ interface CreateArgs {
   anonymous?: boolean
   location?: string
   replaces?: string
+  zone?: Zone
+  alertCategory?: AlertCategory
 }
 
 /**
  * Build a fully-formed local Message ready for storage and sync.
- *
- * Handles signing, ID computation, TTL, and validation rules:
- * - Alerts MUST have a location and CANNOT be anonymous.
- * - Anonymous messages omit authorPubkey/alias/signature.
  */
 export async function createLocalMessage(args: CreateArgs): Promise<Message> {
-  const { type, content, anonymous = false, location, replaces } = args
+  const { type, content, anonymous = false, location, replaces, zone, alertCategory } = args
 
   if (type === 'alert' && !location) {
     throw new Error('Alerts require a location (e.g. "Central Clinic, Main Road")')
@@ -35,7 +34,7 @@ export async function createLocalMessage(args: CreateArgs): Promise<Message> {
   const timestamp = Date.now()
 
   const msg: Message = {
-    id: '', // computed below
+    id: '',
     type,
     content,
     timestamp,
@@ -44,10 +43,13 @@ export async function createLocalMessage(args: CreateArgs): Promise<Message> {
     hops: [],
   }
 
-  if (location) msg.location = location
+  if (location) {
+    // Prefix location with alert category if provided
+    msg.location = alertCategory ? `[${alertCategory}] ${location}` : location
+  }
   if (replaces) msg.replaces = replaces
+  if (zone && zone !== 'all') msg.zone = zone
 
-  // Sign unless anonymous
   if (!anonymous) {
     const identity = await getOrCreateIdentity()
     const storeAlias = useIdentityStore.getState().alias
@@ -56,7 +58,6 @@ export async function createLocalMessage(args: CreateArgs): Promise<Message> {
     msg.authorPubkey = identity.publicKey
     msg.authorAlias = alias
 
-    // Compute ID first (needs all content fields), then sign
     msg.id = await computeMessageId(msg)
     const canonical = canonicalize(msg)
     msg.signature = await signMessage(canonical, identity.privateKey)
