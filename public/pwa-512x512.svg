@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#0B3D91"/>
+  <g stroke="#fff" stroke-width="4" fill="none" opacity="0.3">
+    <line x1="85" y1="128" x2="427" y2="128"/>
+    <line x1="85" y1="256" x2="427" y2="256"/>
+    <line x1="85" y1="384" x2="427" y2="384"/>
+    <line x1="128" y1="85" x2="128" y2="427"/>
+    <line x1="256" y1="85" x2="256" y2="427"/>
+    <line x1="384" y1="85" x2="384" y2="427"/>
+  </g>
+  <g stroke="#fff" stroke-width="6" fill="none">
+    <circle cx="128" cy="128" r="20"/>
+    <circle cx="384" cy="128" r="20"/>
+    <circle cx="256" cy="256" r="20"/>
+    <circle cx="128" cy="384" r="20"/>
+    <circle cx="384" cy="384" r="20"/>
+    <line x1="148" y1="128" x2="364" y2="128"/>
+    <line x1="128" y1="148" x2="128" y2="364"/>
+    <line x1="384" y1="148" x2="384" y2="364"/>
+    <line x1="148" y1="384" x2="364" y2="384"/>
+    <line x1="145" y1="145" x2="239" y2="239"/>
+    <line x1="367" y1="145" x2="273" y2="239"/>
+    <line x1="145" y1="367" x2="239" y2="273"/>
+    <line x1="367" y1="367" x2="273" y2="273"/>
+  </g>
+  <text x="256" y="275" text-anchor="middle" font-family="system-ui,sans-serif" font-size="36" font-weight="bold" fill="#fff" dominant-baseline="middle">M</text>
+</svg>
