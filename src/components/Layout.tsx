@@ -9,9 +9,9 @@ interface Props {
 
 export function Layout({ children, onMeshOpen }: Props) {
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-bg text-text">
       <Header onMeshOpen={onMeshOpen} />
-      <main className="flex-1 overflow-y-auto pb-20">{children}</main>
+      <main className="flex-1 overflow-y-auto pb-24 relative">{children}</main>
       <BottomNav />
     </div>
   )

@@ -23,11 +23,8 @@ export function DmsScreen() {
 
   const [contactModalOpen, setContactModalOpen] = useState(false)
 
-  useEffect(() => {
-    loadContacts()
-  }, [loadContacts])
+  useEffect(() => { loadContacts() }, [loadContacts])
 
-  // Poll thread when active
   useEffect(() => {
     if (!activeThread) return
     loadThread(activeThread)
@@ -48,31 +45,28 @@ export function DmsScreen() {
     )
   }
 
-  // Thread list
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-slate-900">Messages</h2>
+        <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">MESSAGES</h2>
         <button
           onClick={() => setContactModalOpen(true)}
-          className="p-2 text-slate-500 hover:text-slate-700 transition-colors duration-150"
+          className="p-2 text-text-muted hover:text-accent transition-colors duration-150"
         >
-          <UserPlus size={20} />
+          <UserPlus size={18} />
         </button>
       </div>
 
-      <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-4">
-        <Lock size={12} />
-        <span>End-to-end encrypted</span>
+      <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-text-dim mb-5 border-y border-border py-2">
+        <Lock size={11} />
+        <span>END-TO-END ENCRYPTED</span>
       </div>
 
       {contacts.length === 0 ? (
-        <div className="text-center py-16">
-          <MessageCircle size={32} className="mx-auto text-slate-300 mb-3" />
-          <p className="text-sm text-slate-400">No contacts yet.</p>
-          <p className="text-xs text-slate-400 mt-1">
-            Tap <UserPlus size={12} className="inline" /> to add someone.
-          </p>
+        <div className="text-center py-20 space-y-3">
+          <MessageCircle size={24} className="mx-auto text-text-dim stroke-1" />
+          <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-dim">NO CONTACTS</div>
+          <p className="text-xs font-mono text-text-muted">Tap + to add a contact handle.</p>
         </div>
       ) : (
         <div className="space-y-1">
@@ -84,23 +78,20 @@ export function DmsScreen() {
             return (
               <button
                 key={c.pubkey}
-                onClick={() => {
-                  setActiveThread(c.pubkey)
-                  loadThread(c.pubkey)
-                }}
-                className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150 text-left"
+                onClick={() => { setActiveThread(c.pubkey); loadThread(c.pubkey) }}
+                className="w-full flex items-center gap-3 p-3 border border-transparent hover:border-border hover:bg-accent-glow active:scale-[0.99] transition-all duration-150 text-left"
               >
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-medium text-slate-500 shrink-0">
+                <div className="w-9 h-9 bg-surface-2 border border-border flex items-center justify-center text-xs font-mono text-text-muted shrink-0">
                   {c.alias.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-800 truncate">{c.alias}</span>
+                    <span className="text-sm font-mono text-text truncate">{c.alias}</span>
                     {lastMsg && (
-                      <span className="text-[10px] text-slate-400 shrink-0">{timeAgo(lastMsg.timestamp)}</span>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim shrink-0">{timeAgo(lastMsg.timestamp)}</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 truncate">{preview}</p>
+                  <p className="text-xs font-body text-text-muted truncate">{preview}</p>
                 </div>
               </button>
             )
@@ -108,31 +99,20 @@ export function DmsScreen() {
         </div>
       )}
 
-      {/* Load threads for previews */}
       <ThreadPreviewLoader contacts={contacts} />
-
       <ContactAdd open={contactModalOpen} onClose={() => { setContactModalOpen(false); loadContacts() }} />
     </div>
   )
 }
 
-/** Silently loads threads for contact list preview. */
 function ThreadPreviewLoader({ contacts }: { contacts: { pubkey: string }[] }) {
   const loadThread = useDmsStore((s) => s.loadThread)
-
-  useEffect(() => {
-    contacts.forEach((c) => loadThread(c.pubkey))
-  }, [contacts, loadThread])
-
+  useEffect(() => { contacts.forEach((c) => loadThread(c.pubkey)) }, [contacts, loadThread])
   return null
 }
 
-/** Single conversation view. */
 function Conversation({
-  thread,
-  myPubkey,
-  onBack,
-  onRefresh,
+  thread, myPubkey, onBack, onRefresh,
 }: {
   thread: { pubkey: string; alias: string; handle: string; messages: DecryptedDM[] }
   myPubkey: string
@@ -143,78 +123,55 @@ function Conversation({
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Scroll to bottom on new messages
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [thread.messages.length])
 
   const sendDM = useCallback(async () => {
     if (!text.trim() || sending) return
     setSending(true)
-
     try {
       const identity = await getOrCreateIdentity()
-      const { ciphertext, nonce } = encryptForRecipient(
-        text.trim(),
-        thread.pubkey,
-        identity.privateKey,
-      )
-
+      const { ciphertext, nonce } = encryptForRecipient(text.trim(), thread.pubkey, identity.privateKey)
       const content = JSON.stringify({ ct: ciphertext, nc: nonce })
       const timestamp = Date.now()
-
       const msg: Message = {
-        id: '',
-        type: 'dm',
-        content,
-        authorPubkey: identity.publicKey,
-        authorAlias: undefined,
-        recipientPub: thread.pubkey,
-        timestamp,
-        ttl: timestamp + TTL.DM,
-        priority: PRIORITY.DROP, // DMs use priority 1
-        hops: [],
+        id: '', type: 'dm', content,
+        authorPubkey: identity.publicKey, authorAlias: undefined,
+        recipientPub: thread.pubkey, timestamp,
+        ttl: timestamp + TTL.DM, priority: PRIORITY.DROP, hops: [],
       }
-
-      // Compute ID and sign
       msg.id = await computeMessageId(msg)
       const canonical = canonicalize(msg)
       msg.signature = await signMessage(canonical, identity.privateKey)
-      // Set alias after signing (not part of canonical)
       const { deriveAlias } = await import('../lib/identity')
       msg.authorAlias = await deriveAlias(identity.publicKey)
-
       await addMessage(msg)
       setText('')
       onRefresh()
-    } catch (e) {
-      console.error('[dm] Send failed:', e)
-    } finally {
-      setSending(false)
-    }
+    } catch (e) { console.error('[dm] Send failed:', e) }
+    finally { setSending(false) }
   }, [text, sending, thread.pubkey, onRefresh])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-bg">
       {/* Top bar */}
-      <div className="flex items-center gap-3 p-3 border-b border-slate-100 shrink-0">
-        <button onClick={onBack} className="p-1 text-slate-500 hover:text-slate-700 transition-colors duration-150">
-          <ArrowLeft size={20} />
+      <div className="flex items-center gap-3 p-3 border-b border-border shrink-0 bg-surface">
+        <button onClick={onBack} className="p-1 text-text-muted hover:text-accent transition-colors duration-150">
+          <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-slate-900 truncate">{thread.alias}</p>
-          <p className="text-[10px] text-slate-400 font-mono">{thread.handle}</p>
+          <p className="text-sm font-mono text-text truncate">{thread.alias}</p>
+          <p className="text-[10px] font-mono uppercase tracking-wider text-text-dim">{thread.handle}</p>
         </div>
-        <Lock size={14} className="text-slate-400" />
+        <Lock size={12} className="text-accent-dim" />
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
         {thread.messages.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-sm text-slate-400">No messages yet. Say hello!</p>
+          <div className="text-center py-12">
+            <p className="text-xs font-mono uppercase tracking-wider text-text-dim">NO MESSAGES YET</p>
           </div>
         )}
         {thread.messages.map((m) => {
@@ -222,15 +179,13 @@ function Conversation({
           const displayText = m.decryptedText ?? 'Unable to decrypt'
           return (
             <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm ${
-                  isMe
-                    ? 'bg-[#0B3D91] text-white rounded-br-md'
-                    : 'bg-slate-100 text-slate-800 rounded-bl-md'
-                }`}
-              >
+              <div className={`max-w-[78%] px-3 py-2 text-sm font-body ${
+                isMe
+                  ? 'bg-accent/10 border border-accent-dim text-text ml-auto'
+                  : 'bg-surface border border-border text-text'
+              }`}>
                 <p className="whitespace-pre-wrap">{displayText}</p>
-                <p className={`text-[10px] mt-1 ${isMe ? 'text-blue-200' : 'text-slate-400'}`}>
+                <p className={`text-[9px] font-mono uppercase tracking-wider mt-1 ${isMe ? 'text-accent-dim' : 'text-text-dim'}`}>
                   {timeAgo(m.timestamp)}
                 </p>
               </div>
@@ -240,25 +195,25 @@ function Conversation({
       </div>
 
       {/* Input */}
-      <div className="shrink-0 p-3 border-t border-slate-100 flex items-center gap-2">
+      <div className="shrink-0 p-3 border-t border-border bg-surface flex items-center gap-2">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDM() } }}
           placeholder="Type a message..."
-          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-full bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+          className="flex-1 px-3 py-2 text-sm font-body bg-surface-2 border border-border text-text placeholder:text-text-dim focus:outline-none focus:border-accent transition-colors duration-150"
         />
         <button
           onClick={sendDM}
           disabled={!text.trim() || sending}
-          className={`p-2.5 rounded-full transition-colors duration-150 ${
+          className={`p-2.5 border transition-colors duration-150 ${
             text.trim() && !sending
-              ? 'bg-[#0B3D91] text-white active:bg-[#092d6d]'
-              : 'bg-slate-200 text-slate-400'
+              ? 'border-accent text-accent bg-accent/5 hover:bg-accent/15'
+              : 'border-border text-text-dim'
           }`}
         >
-          <Send size={16} />
+          <Send size={14} />
         </button>
       </div>
     </div>

@@ -6,9 +6,10 @@ import { useUiStore } from '../store/ui'
 interface Props {
   message: Message
   index?: number
+  isNew?: boolean
 }
 
-export function MessageCard({ message, index = 0 }: Props) {
+export function MessageCard({ message, index = 0, isNew = false }: Props) {
   const openDetail = useUiStore((s) => s.openDetail)
 
   const isSigned = !!message.authorPubkey && !!message.signature
@@ -18,64 +19,74 @@ export function MessageCard({ message, index = 0 }: Props) {
   return (
     <div
       onClick={() => openDetail(message.id)}
-      style={{ animationDelay: `${index * 50}ms` }}
-      className={`rounded-lg border bg-white p-3 animate-card-in cursor-pointer active:bg-slate-50 transition-colors duration-150 ${
-        isAlert ? 'border-l-4 border-l-red-500 border-slate-200 animate-breathe' : 'border-slate-200'
-      }`}
+      style={{
+        animationDelay: `${index * 50}ms, ${((index * 1.7) % 8).toFixed(1)}s`,
+        transition: 'border-color 1500ms ease-out, box-shadow 1500ms ease-out',
+      }}
+      className={[
+        'relative bg-surface border p-4 cursor-pointer',
+        'transition-all duration-300',
+        'hover:border-border-mid hover:bg-accent-glow',
+        'animate-card-in animate-subtle-breath',
+        isAlert ? 'border-l-2 border-l-alert' : '',
+        isNew
+          ? 'border-accent shadow-[0_0_0_1px] shadow-accent/40'
+          : 'border-border',
+      ].join(' ')}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-1.5 min-w-0">
           {isSigned ? (
             <>
-              <CheckCircle size={14} className="text-blue-500 shrink-0" />
-              <span className="text-sm font-medium text-slate-700 truncate">
+              <CheckCircle size={11} className="text-accent shrink-0" />
+              <span className="text-xs font-mono text-text truncate">
                 {message.authorAlias}
               </span>
             </>
           ) : (
             <>
-              <Ghost size={14} className="text-slate-400 shrink-0" />
-              <span className="text-sm text-slate-400 italic">anonymous</span>
+              <Ghost size={11} className="text-text-dim shrink-0" />
+              <span className="text-xs font-mono text-text-muted italic">anonymous</span>
             </>
           )}
           {isEdited && (
-            <span className="flex items-center gap-0.5 text-[10px] text-slate-400">
-              <Pencil size={10} />
+            <span className="flex items-center gap-0.5 text-[10px] font-mono uppercase tracking-wider text-text-dim ml-2">
+              <Pencil size={9} />
               edited
             </span>
           )}
         </div>
-        <span className="text-xs text-slate-400 shrink-0 ml-2">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim shrink-0 ml-2">
           {timeAgo(message.timestamp)}
         </span>
       </div>
 
       {/* Body */}
-      <p className="text-sm text-slate-800 whitespace-pre-wrap line-clamp-4">
+      <p className="mt-2 text-sm font-body text-text whitespace-pre-wrap line-clamp-4 leading-relaxed">
         {message.content}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center gap-2 mt-2">
+      <div className="flex items-center gap-3 mt-2">
         {message.hops.length > 0 && (
-          <span className="text-[10px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded">
-            via {message.hops.length} device{message.hops.length !== 1 ? 's' : ''}
+          <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
+            VIA {message.hops.length} DEVICE{message.hops.length !== 1 ? 'S' : ''}
           </span>
         )}
         {isAlert && (
-          <span className="text-[10px] font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-alert border border-alert/40 px-1.5 py-0.5">
             ALERT
           </span>
         )}
         {message.type === 'drop' && (
-          <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-accent border border-accent-dim px-1.5 py-0.5">
             DROP
           </span>
         )}
         {message.location && (
-          <span className="flex items-center gap-0.5 text-[10px] text-slate-500">
-            <MapPin size={10} />
+          <span className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-text-muted">
+            <MapPin size={9} />
             {message.location}
           </span>
         )}

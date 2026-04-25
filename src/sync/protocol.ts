@@ -176,6 +176,11 @@ export async function ingestReceivedMessage(
   msg.hidden = false
   await addMessage(msg)
 
+  // Notify UI that a new message arrived (for arrival animation)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('mesh:message-arrived', { detail: { id: msg.id } }))
+  }
+
   // ── Step 8: Record the peers we've seen ──────────────────────────
   // Register every relayer in the hop chain as a known peer so the
   // mesh-graph visualization can show the network topology.

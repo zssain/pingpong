@@ -1,7 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import {
-  Archive, QrCode, Camera, CheckCircle, Loader2, Printer,
-} from 'lucide-react'
+import { QrCode, Camera, Printer } from 'lucide-react'
 import { buildDropBundle, ingestDropBundle } from '../transport/dropbundle'
 import { chunkForAnimatedQR } from '../transport/qr'
 import { getVisibleMessages, getOrCreateIdentity } from '../db'
@@ -15,6 +13,11 @@ import { useUiStore } from '../store/ui'
 type Tab = 'create' | 'scan'
 type Step = 'idle' | 'generating' | 'showing' | 'scanning' | 'ingesting' | 'done'
 
+const BTN_PRIMARY = 'w-full py-3 text-xs font-mono uppercase tracking-[0.2em] border border-accent text-accent bg-accent/5 hover:bg-accent/15 active:scale-[0.98] transition-all duration-150'
+const BTN_SECONDARY = 'w-full py-3 text-xs font-mono uppercase tracking-[0.2em] border border-border text-text-muted hover:border-border-mid hover:text-text active:scale-[0.98] transition-all duration-150'
+const BTN_TERTIARY = 'text-[10px] font-mono uppercase tracking-wider text-text-muted hover:text-text transition-colors'
+const HEADING = 'text-[10px] font-mono uppercase tracking-[0.2em] text-text-muted'
+
 export function DropsScreen() {
   const [tab, setTab] = useState<Tab>('create')
   const [step, setStep] = useState<Step>('idle')
@@ -27,13 +30,9 @@ export function DropsScreen() {
   const appendEvent = useSyncStore((s) => s.appendEvent)
   const showToast = useUiStore((s) => s.showToast)
 
-  // Load preview counts
   useEffect(() => {
     if (tab === 'create') {
-      Promise.all([
-        getVisibleMessages('news'),
-        getVisibleMessages('alert'),
-      ]).then(([news, alerts]) => {
+      Promise.all([getVisibleMessages('news'), getVisibleMessages('alert')]).then(([news, alerts]) => {
         setPreview({ news: Math.min(news.length, 10), alerts: Math.min(alerts.length, 3) })
       })
     }
@@ -41,142 +40,91 @@ export function DropsScreen() {
 
   const generateBundle = useCallback(async () => {
     setStep('generating')
-    const b64 = await buildDropBundle()
-    setRawPayload(b64)
-    const qrFrames = await chunkForAnimatedQR(b64)
-    setFrames(qrFrames)
-    setStep('showing')
+    const b64 = await buildDropBundle(); setRawPayload(b64)
+    const qrFrames = await chunkForAnimatedQR(b64); setFrames(qrFrames); setStep('showing')
   }, [])
 
-  const startScan = useCallback(() => {
-    setStep('scanning')
-    setResult(null)
-  }, [])
+  const startScan = useCallback(() => { setStep('scanning'); setResult(null) }, [])
 
   const onScanComplete = useCallback(async (b64: string) => {
     setStep('ingesting')
     try {
-      const identity = await getOrCreateIdentity()
-      const alias = await deriveAlias(identity.publicKey)
-      const res = await ingestDropBundle(b64, identity, alias)
-      setResult(res)
-      setStep('done')
+      const identity = await getOrCreateIdentity(); const alias = await deriveAlias(identity.publicKey)
+      const res = await ingestDropBundle(b64, identity, alias); setResult(res); setStep('done')
       appendEvent({ t: Date.now(), kind: 'sync-complete' })
-      if (res.accepted > 0) {
-        showToast(`${res.accepted} message${res.accepted !== 1 ? 's' : ''} from community drop`)
-      }
-    } catch {
-      setResult({ accepted: 0, rejected: 0 })
-      setStep('done')
-    }
+      if (res.accepted > 0) showToast(`${res.accepted} message${res.accepted !== 1 ? 's' : ''} from community drop`)
+    } catch { setResult({ accepted: 0, rejected: 0 }); setStep('done') }
   }, [appendEvent, showToast])
 
-  const reset = useCallback(() => {
-    setStep('idle')
-    setFrames([])
-    setRawPayload('')
-    setResult(null)
-  }, [])
+  const reset = useCallback(() => { setStep('idle'); setFrames([]); setRawPayload(''); setResult(null) }, [])
 
   return (
     <>
       <div className="p-4">
-        {/* Tab bar */}
-        <div className="flex border-b border-slate-200 mb-4">
+        <div className="flex border-b border-border mb-5">
           {(['create', 'scan'] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); reset() }}
-              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors duration-150 ${
-                tab === t
-                  ? 'border-slate-900 text-slate-900'
-                  : 'border-transparent text-slate-400'
+              className={`flex-1 py-2.5 text-[11px] font-mono uppercase tracking-[0.2em] border-b-2 transition-colors duration-150 ${
+                tab === t ? 'border-accent text-accent' : 'border-transparent text-text-dim hover:text-text-muted'
               }`}
             >
-              {t === 'create' ? 'Create' : 'Scan'}
+              {t === 'create' ? 'CREATE' : 'SCAN'}
             </button>
           ))}
         </div>
 
-        {/* ── Create tab ── */}
         {tab === 'create' && (
           <div className="flex flex-col items-center">
             {step === 'idle' && (
               <div className="w-full max-w-sm space-y-4 animate-fade-in">
-                <div className="text-center py-4">
-                  <Archive size={40} className="mx-auto text-slate-300 mb-3" />
-                  <h2 className="text-lg font-semibold text-slate-900">Create poster</h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Bundle recent messages into a QR poster anyone can scan.
-                  </p>
+                <div className="text-center py-4 space-y-2">
+                  <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">CREATE POSTER</h2>
+                  <p className="text-xs font-mono text-text-dim">Bundle recent messages into a QR poster anyone can scan.</p>
                 </div>
-
-                {/* Preview */}
-                <div className="bg-slate-50 rounded-lg p-3 space-y-1">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Will include
-                  </p>
-                  <p className="text-sm text-slate-700">
+                <div className="border border-border p-4 space-y-1">
+                  <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-dim">WILL INCLUDE</p>
+                  <p className="text-sm font-mono text-text">
                     {preview.news} news post{preview.news !== 1 ? 's' : ''}
                     {preview.alerts > 0 && ` + ${preview.alerts} alert${preview.alerts !== 1 ? 's' : ''}`}
                   </p>
                 </div>
-
                 <button
                   onClick={generateBundle}
                   disabled={preview.news + preview.alerts === 0}
-                  className={`w-full py-3 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center justify-center gap-2 ${
-                    preview.news + preview.alerts > 0
-                      ? 'bg-slate-900 text-white active:bg-slate-800'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  }`}
+                  className={preview.news + preview.alerts > 0 ? `${BTN_PRIMARY} flex items-center justify-center gap-2` : `w-full py-3 text-xs font-mono uppercase tracking-[0.2em] border border-border text-text-dim cursor-not-allowed`}
                 >
-                  <QrCode size={16} />
-                  Generate QR
+                  <QrCode size={14} /> GENERATE QR
                 </button>
               </div>
             )}
-
             {step === 'generating' && (
-              <div className="py-8 animate-fade-in text-center">
-                <Loader2 size={32} className="mx-auto text-slate-400 animate-spin" />
-                <p className="text-sm text-slate-500 mt-3">Compressing messages...</p>
+              <div className="py-12 animate-fade-in text-center space-y-3">
+                <div className="flex justify-center gap-1">
+                  <span className="w-1 h-1 bg-accent animate-pulse" />
+                  <span className="w-1 h-1 bg-accent animate-pulse" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-1 bg-accent animate-pulse" style={{ animationDelay: '300ms' }} />
+                </div>
+                <p className="text-[11px] font-mono text-text-dim">COMPRESSING</p>
               </div>
             )}
-
             {step === 'showing' && (
-              <div className="space-y-4 animate-fade-in text-center">
-                <h3 className="text-sm font-semibold text-slate-700">Community drop</h3>
+              <div className="space-y-4 animate-fade-in text-center w-full max-w-xs">
+                <h3 className={HEADING}>COMMUNITY DROP</h3>
                 <QRDisplay frames={frames} />
-                <p className="text-xs text-slate-500">
-                  {frames.length} QR frame{frames.length !== 1 ? 's' : ''} — hold camera steady
+                <p className="text-[10px] font-mono uppercase tracking-wider text-text-dim">
+                  {frames.length} FRAME{frames.length !== 1 ? 'S' : ''} — HOLD CAMERA STEADY
                 </p>
-
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setPosterOpen(true)}
-                    className="flex-1 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium active:bg-slate-50 transition-colors duration-150 flex items-center justify-center gap-1.5"
-                  >
-                    <Printer size={14} />
-                    Print-ready view
+                  <button onClick={() => setPosterOpen(true)} className={`flex-1 ${BTN_SECONDARY} flex items-center justify-center gap-1.5`}>
+                    <Printer size={12} /> PRINT VIEW
                   </button>
-                  <button
-                    onClick={reset}
-                    className="flex-1 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium active:bg-slate-800 transition-colors duration-150"
-                  >
-                    Done
-                  </button>
+                  <button onClick={reset} className={`flex-1 ${BTN_PRIMARY}`}>DONE</button>
                 </div>
-
                 {import.meta.env.DEV && (
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(rawPayload)
-                      showToast('Payload copied to clipboard')
-                    }}
-                    className="text-xs text-slate-400 underline"
-                  >
-                    Copy payload (dev)
+                  <button onClick={() => { navigator.clipboard.writeText(rawPayload); showToast('Payload copied') }} className={BTN_TERTIARY}>
+                    COPY PAYLOAD (DEV)
                   </button>
                 )}
               </div>
@@ -184,77 +132,54 @@ export function DropsScreen() {
           </div>
         )}
 
-        {/* ── Scan tab ── */}
         {tab === 'scan' && (
           <div className="flex flex-col items-center">
             {step === 'idle' && (
               <div className="w-full max-w-sm space-y-4 animate-fade-in">
-                <div className="text-center py-4">
-                  <Camera size={40} className="mx-auto text-slate-300 mb-3" />
-                  <h2 className="text-lg font-semibold text-slate-900">Scan poster</h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Point your camera at a community QR poster to ingest messages.
-                  </p>
+                <div className="text-center py-4 space-y-2">
+                  <h2 className="text-xs font-mono uppercase tracking-[0.2em] text-text-muted">SCAN POSTER</h2>
+                  <p className="text-xs font-mono text-text-dim">Point camera at a community QR poster.</p>
                 </div>
-                <button
-                  onClick={startScan}
-                  className="w-full py-3 rounded-lg bg-slate-900 text-white text-sm font-medium active:bg-slate-800 transition-colors duration-150 flex items-center justify-center gap-2"
-                >
-                  <Camera size={16} />
-                  Start scanning
+                <button onClick={startScan} className={`${BTN_PRIMARY} flex items-center justify-center gap-2`}>
+                  <Camera size={14} /> START SCANNING
                 </button>
               </div>
             )}
-
             {step === 'scanning' && (
-              <div className="space-y-4 animate-fade-in text-center">
-                <h3 className="text-sm font-semibold text-slate-700">Scanning poster</h3>
+              <div className="space-y-4 animate-fade-in text-center w-full max-w-xs">
+                <h3 className={HEADING}>SCANNING POSTER</h3>
                 <QRScanner mode="animated" onComplete={onScanComplete} />
-                <button onClick={reset} className="text-xs text-slate-400 underline">
-                  Cancel
-                </button>
+                <button onClick={reset} className={BTN_TERTIARY}>CANCEL</button>
               </div>
             )}
-
             {step === 'ingesting' && (
-              <div className="py-8 animate-fade-in text-center">
-                <Loader2 size={32} className="mx-auto text-blue-500 animate-spin" />
-                <p className="text-sm text-slate-500 mt-3">Verifying messages...</p>
+              <div className="py-12 animate-fade-in text-center space-y-3">
+                <div className="flex justify-center gap-1">
+                  <span className="w-1 h-1 bg-accent animate-pulse" />
+                  <span className="w-1 h-1 bg-accent animate-pulse" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-1 bg-accent animate-pulse" style={{ animationDelay: '300ms' }} />
+                </div>
+                <p className="text-[11px] font-mono text-text-dim">VERIFYING</p>
               </div>
             )}
-
             {step === 'done' && result && (
-              <div className="space-y-4 animate-fade-in text-center py-8">
-                <CheckCircle size={40} className="mx-auto text-green-500" />
-                <h3 className="text-sm font-semibold text-slate-900">
+              <div className="space-y-4 animate-fade-in text-center py-12 w-full max-w-xs">
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-success">COMPLETE</div>
+                <p className="text-sm font-mono text-text">
                   Accepted {result.accepted} message{result.accepted !== 1 ? 's' : ''} from community drop.
-                </h3>
+                </p>
                 {result.rejected > 0 && (
-                  <p className="text-xs text-slate-500">
-                    {result.rejected} message{result.rejected !== 1 ? 's' : ''} rejected (invalid or duplicate).
-                  </p>
+                  <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-alert border border-alert/40 px-2 py-1">
+                    {result.rejected} REJECTED
+                  </span>
                 )}
-                <button
-                  onClick={reset}
-                  className="px-6 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium active:bg-slate-800 transition-colors duration-150"
-                >
-                  Scan another
-                </button>
+                <button onClick={reset} className={BTN_PRIMARY}>SCAN ANOTHER</button>
               </div>
             )}
           </div>
         )}
       </div>
-
-      {/* Poster modal */}
-      {posterOpen && (
-        <PosterView
-          title="Community News"
-          frames={frames}
-          createdAt={Date.now()}
-          onClose={() => setPosterOpen(false)}
-        />
-      )}
+      {posterOpen && <PosterView title="Community News" frames={frames} createdAt={Date.now()} onClose={() => setPosterOpen(false)} />}
     </>
   )
 }

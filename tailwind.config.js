@@ -3,6 +3,25 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      colors: {
+        bg: '#0E0F11',
+        surface: '#16181B',
+        'surface-2': '#1C1F23',
+        border: '#2A2D31',
+        'border-mid': '#3A3E44',
+        text: '#E8E6E1',
+        'text-muted': '#86898E',
+        'text-dim': '#4A4D52',
+        accent: '#D4A574',
+        'accent-dim': '#8A6E48',
+        'accent-glow': 'rgba(212, 165, 116, 0.08)',
+        alert: '#D45550',
+        success: '#7FA88B',
+      },
+      fontFamily: {
+        mono: ['"DM Mono"', 'ui-monospace', 'monospace'],
+        body: ['Inter', 'system-ui', 'sans-serif'],
+      },
       animation: {
         'fade-in': 'fadeIn 150ms ease-out',
         'card-in': 'cardIn 200ms ease-out both',
@@ -12,6 +31,7 @@ export default {
         'draw-check': 'drawCheck 400ms ease-out both',
         'ring-expand': 'ringExpand 600ms ease-out both',
         'spin-slow': 'spin 8s linear infinite',
+        'subtle-breath': 'subtle-breath 8s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -33,6 +53,10 @@ export default {
         drawCheck: {
           from: { strokeDashoffset: '24' },
           to: { strokeDashoffset: '0' },
+        },
+        'subtle-breath': {
+          '0%, 100%': { borderColor: '#2A2D31' },
+          '50%': { borderColor: '#3A3E44' },
         },
         ringExpand: {
           from: { opacity: '1', transform: 'scale(0.5)' },

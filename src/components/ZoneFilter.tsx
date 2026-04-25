@@ -7,18 +7,21 @@ interface Props {
 
 export function ZoneFilter({ selected, onChange }: Props) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
+    <div
+      className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1"
+      style={{ scrollbarWidth: 'none' }}
+    >
       {ZONES.map((z) => (
         <button
           key={z}
           onClick={() => onChange(z)}
-          className={`px-3 py-1 text-xs rounded-full border whitespace-nowrap transition-colors duration-150 ${
+          className={`px-3 py-1 text-[11px] font-mono uppercase tracking-wider border whitespace-nowrap transition-colors duration-150 ${
             selected === z
-              ? 'bg-slate-900 border-slate-900 text-white'
-              : 'border-slate-200 text-slate-500 active:bg-slate-50'
+              ? 'border-accent text-accent bg-accent-glow'
+              : 'border-border text-text-muted hover:border-border-mid'
           }`}
         >
-          {z.charAt(0).toUpperCase() + z.slice(1)}
+          {z.toUpperCase()}
         </button>
       ))}
     </div>

@@ -13,10 +13,9 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const controlsRef = useRef<{ stop: () => void } | null>(null)
   const completedRef = useRef(false)
-  const [status, setStatus] = useState('Starting camera...')
+  const [status, setStatus] = useState('STARTING CAMERA')
   const [progress, setProgress] = useState<{ have: number; total: number } | null>(null)
 
-  // For animated mode, collect frames by pid
   const framesRef = useRef<Map<string, Map<number, QRFrame>>>(new Map())
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
         videoRef.current,
         (result, err) => {
           if (completedRef.current) return
-          if (err) return // no-result frames are normal, just skip
+          if (err) return
           if (!result) return
 
           const text = result.getText()
@@ -43,12 +42,10 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
             return
           }
 
-          // Animated mode: parse the frame
           try {
             const frame = JSON.parse(text) as QRFrame
             if (frame.v !== 1 || typeof frame.seq !== 'number') return
 
-            // Get or create frame map for this payload ID
             if (!framesRef.current.has(frame.pid)) {
               framesRef.current.set(frame.pid, new Map())
             }
@@ -56,9 +53,8 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
             frameMap.set(frame.seq, frame)
 
             setProgress({ have: frameMap.size, total: frame.tot })
-            setStatus(`Captured ${frameMap.size} / ${frame.tot} frames`)
+            setStatus(`FRAME ${frameMap.size} / ${frame.tot}`)
 
-            // Check if we have all frames
             if (frameMap.size >= frame.tot) {
               const allFrames = Array.from(frameMap.values())
               const assembled = reassembleAnimatedQR(allFrames)
@@ -69,7 +65,6 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
               }
             }
           } catch {
-            // Not a valid animated frame — might be a single QR, try using it directly
             completedRef.current = true
             controlsRef.current?.stop()
             onComplete(text)
@@ -78,14 +73,14 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
       )
       .then((controls) => {
         controlsRef.current = controls
-        setStatus('Scanning...')
+        setStatus('SCANNING')
       })
       .catch((err: Error) => {
         const msg = err.message || ''
         if (msg.includes('Permission') || msg.includes('NotAllowed')) {
-          setStatus('Camera permission denied')
+          setStatus('CAMERA PERMISSION DENIED')
         } else {
-          setStatus('Camera error')
+          setStatus('CAMERA ERROR')
         }
         onError?.(err)
       })
@@ -97,22 +92,25 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
   }, [mode, onComplete, onError])
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-64 h-64 rounded-lg overflow-hidden border border-slate-200 bg-black">
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative w-64 h-64">
+        <span className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-accent z-10" />
+        <span className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-accent z-10" />
+        <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-accent z-10" />
+        <span className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-accent z-10" />
         <video
           ref={videoRef}
-          className="w-full h-full object-cover"
+          className="w-full h-full bg-surface-2 object-cover"
           playsInline
           muted
         />
-        {/* Scanning overlay */}
-        <div className="absolute inset-0 border-2 border-blue-400/50 rounded-lg pointer-events-none" />
+        <span className="absolute inset-8 border border-accent/40 pointer-events-none" />
       </div>
-      <span className="text-xs text-slate-500">{status}</span>
+      <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">{status}</span>
       {progress && mode === 'animated' && (
-        <div className="w-48 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <div className="w-48 h-1 bg-border overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-200"
+            className="h-full bg-accent transition-all duration-200"
             style={{ width: `${(progress.have / progress.total) * 100}%` }}
           />
         </div>

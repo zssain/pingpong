@@ -27,6 +27,8 @@ import { db } from '../db/schema'
 import type { Message, Identity } from '../types'
 import { PRIORITY, TTL } from '../types'
 
+let testRunning = false
+
 async function makeIdentity(): Promise<Identity> {
   const kp = await generateKeypair()
   return {
@@ -62,6 +64,10 @@ async function createTestMessage(
 }
 
 export async function runSyncTests(): Promise<void> {
+  // Guard against StrictMode double-invocation
+  if (testRunning) return
+  testRunning = true
+
   console.log('[sync-test] ─── Starting sync engine tests ───')
 
   // Clean slate for tests

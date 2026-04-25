@@ -9,10 +9,10 @@ import { timeAgo } from '../lib/timeago'
 import type { Message } from '../types'
 
 const TYPE_LABELS: Record<Message['type'], { text: string; className: string }> = {
-  news: { text: 'News', className: 'bg-slate-100 text-slate-600' },
-  alert: { text: 'Alert', className: 'bg-red-50 text-red-600' },
-  dm: { text: 'DM', className: 'bg-blue-50 text-blue-600' },
-  drop: { text: 'Drop', className: 'bg-amber-50 text-amber-600' },
+  news: { text: 'NEWS', className: 'border border-border text-text-muted' },
+  alert: { text: 'ALERT', className: 'border border-alert text-alert' },
+  dm: { text: 'DM', className: 'border border-accent-dim text-accent' },
+  drop: { text: 'DROP', className: 'border border-accent-dim text-accent' },
 }
 
 export function MessageDetailModal() {
@@ -60,7 +60,7 @@ export function MessageDetailModal() {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-50 bg-black/30 transition-opacity duration-200 ${
+        className={`fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeDetail}
@@ -68,33 +68,33 @@ export function MessageDetailModal() {
 
       {/* Panel */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-w-lg mx-auto max-h-[85vh] flex flex-col transition-transform duration-200 ease-out ${
+        className={`fixed inset-x-0 bottom-0 z-50 bg-surface border-t border-border-mid max-w-lg mx-auto max-h-[85vh] flex flex-col transition-transform duration-200 ease-out ${
           isOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         {message && (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
               <div className="flex items-center gap-2">
                 {badge && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${badge.className}`}>
+                  <span className={`text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 ${badge.className}`}>
                     {badge.text}
                   </span>
                 )}
                 {canEdit && (
                   <button
                     onClick={() => setEditing(true)}
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 px-2 py-0.5 rounded border border-slate-200 transition-colors duration-150"
+                    className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-text-muted hover:text-accent border border-border hover:border-accent-dim px-2 py-0.5 transition-colors duration-150"
                   >
-                    <Pencil size={11} />
-                    Edit
+                    <Pencil size={10} />
+                    EDIT
                   </button>
                 )}
               </div>
               <button
                 onClick={closeDetail}
-                className="p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150"
+                className="p-1 text-text-muted hover:text-text transition-colors duration-150"
               >
                 <X size={20} />
               </button>
@@ -104,33 +104,33 @@ export function MessageDetailModal() {
             <div className="overflow-y-auto p-4 space-y-4">
               {/* Status banners */}
               {message.hidden && (
-                <div className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                  This post was replaced by a newer version.
+                <div className="text-[11px] font-mono uppercase tracking-wider text-text-muted border-l-2 border-text-dim pl-3 py-1">
+                  THIS POST WAS REPLACED BY A NEWER VERSION
                 </div>
               )}
               {message.replaces && !message.hidden && (
-                <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                  This is an updated version of an earlier post.
+                <div className="text-[11px] font-mono uppercase tracking-wider text-accent border-l-2 border-accent pl-3 py-1">
+                  UPDATED VERSION OF AN EARLIER POST
                 </div>
               )}
 
               {/* Content */}
-              <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+              <p className="text-[15px] font-body text-text whitespace-pre-wrap leading-relaxed">
                 {message.content}
               </p>
 
               {/* Location */}
               {message.location && (
-                <div className="flex items-center gap-1.5 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                  <MapPin size={14} className="shrink-0" />
-                  <span className="font-medium">{message.location}</span>
+                <div className="flex items-center gap-2 text-sm font-mono uppercase tracking-wider text-alert border border-alert/40 px-3 py-2">
+                  <MapPin size={12} className="shrink-0" />
+                  <span>{message.location}</span>
                 </div>
               )}
 
               {/* Chain of custody */}
               <div>
-                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-                  Chain of custody
+                <h4 className="text-[10px] font-mono uppercase tracking-wider text-text-dim mb-3">
+                  CHAIN OF CUSTODY
                 </h4>
                 <HopChain
                   messageId={message.id}
@@ -141,21 +141,21 @@ export function MessageDetailModal() {
               </div>
 
               {/* Metadata */}
-              <div className="border-t border-slate-100 pt-3 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="border-t border-border pt-3 space-y-2">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-text-muted">
                   <Clock size={12} />
                   <span>
-                    Created {timeAgo(message.timestamp)} &middot; Expires in{' '}
-                    {ttlHours > 0 ? `${ttlHours}h ` : ''}{ttlMinutes}m
+                    CREATED {timeAgo(message.timestamp).toUpperCase()} &middot; EXPIRES IN{' '}
+                    {ttlHours > 0 ? `${ttlHours}H ` : ''}{ttlMinutes}M
                   </span>
                 </div>
                 {message.zone && (
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-text-muted">
                     <Globe size={12} />
-                    <span>Zone: {message.zone}</span>
+                    <span>ZONE: {message.zone.toUpperCase()}</span>
                   </div>
                 )}
-                <div className="text-[10px] text-slate-300 font-mono truncate">
+                <div className="text-[9px] font-mono text-text-dim truncate">
                   ID: {message.id}
                 </div>
               </div>

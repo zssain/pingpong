@@ -28,26 +28,43 @@ export function Header({ onMeshOpen }: Props) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between h-14 px-4 bg-[#0B3D91] text-white select-none">
-      <div className="flex items-center gap-2" onClick={handleTap}>
-        <span className="text-sm font-bold tracking-widest">MESH</span>
+    <header className="sticky top-0 z-50 flex items-center h-12 px-4 bg-bg border-b border-border text-text">
+      {/* Left: wordmark + alias */}
+      <div
+        className="flex items-center gap-2 select-none cursor-pointer"
+        onClick={handleTap}
+      >
+        <div className="w-1.5 h-1.5 bg-accent" />
+        <span className="text-xs uppercase tracking-[0.2em] font-mono text-text">
+          WISP
+        </span>
+        <span className="text-[11px] font-mono text-text-muted ml-3 truncate max-w-[140px]">
+          {alias ?? '...'}
+        </span>
       </div>
-      <span className="text-xs text-blue-200 truncate max-w-[140px]">
-        {alias ?? '...'}
-      </span>
-      <div className="flex items-center gap-3">
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Right: peer status + mesh icon */}
+      <div className="flex items-center">
+        <div
+          className={`w-1.5 h-1.5 rounded-full ${
+            peerCount > 0 ? 'bg-success' : 'bg-text-dim'
+          }`}
+        />
+        <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted ml-2">
+          {peerCount} {peerCount === 1 ? 'PEER' : 'PEERS'}
+        </span>
         {onMeshOpen && (
           <button
             onClick={onMeshOpen}
-            className="p-1 text-blue-200 hover:text-white transition-colors duration-150"
-            aria-label="View mesh network"
+            className="ml-3 p-1 text-text-muted hover:text-accent transition-colors duration-150"
+            aria-label="View network"
           >
-            <Network size={16} />
+            <Network size={14} />
           </button>
         )}
-        <span className="text-xs text-blue-300">
-          {peerCount} peer{peerCount !== 1 ? 's' : ''}
-        </span>
       </div>
     </header>
   )

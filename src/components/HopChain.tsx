@@ -56,25 +56,25 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
       {/* Author (origin) entry */}
       <div className="flex items-start gap-3 animate-fade-in">
         <div className="flex flex-col items-center">
-          <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+          <div className="w-7 h-7 flex items-center justify-center shrink-0 border border-border bg-surface-2">
             {authorPubkey ? (
-              <Pencil size={13} className="text-blue-500" />
+              <Pencil size={12} className="text-accent" />
             ) : (
-              <Ghost size={13} className="text-slate-400" />
+              <Ghost size={12} className="text-text-dim" />
             )}
           </div>
           {hops.length > 0 && (
-            <div className="w-px flex-1 min-h-[20px] bg-slate-200" />
+            <div className="w-px flex-1 min-h-[20px] bg-border" />
           )}
         </div>
         <div className="pb-3 min-w-0">
-          <p className="text-sm font-medium text-slate-700 truncate">
+          <p className="text-xs font-mono text-text truncate">
             {authorAlias ?? 'anonymous'}
             {authorPubkey === myPubkey && (
-              <span className="text-xs text-slate-400 font-normal ml-1">(you)</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim ml-1">(YOU)</span>
             )}
           </p>
-          <p className="text-xs text-slate-400">wrote this message</p>
+          <p className="text-[10px] font-mono uppercase tracking-wider text-text-dim">WROTE THIS MESSAGE</p>
         </div>
       </div>
 
@@ -92,12 +92,12 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
           >
             <div className="flex flex-col items-center">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border text-xs font-bold ${
+                className={`w-7 h-7 flex items-center justify-center shrink-0 border text-[11px] font-mono ${
                   verifying
-                    ? 'bg-slate-50 border-slate-200 text-slate-400'
+                    ? 'bg-surface-2 border-border text-text-dim'
                     : result
-                      ? 'bg-green-50 border-green-200 text-green-600'
-                      : 'bg-amber-50 border-amber-200 text-amber-600'
+                      ? 'bg-accent-glow border-accent text-accent'
+                      : 'bg-alert/10 border-alert text-alert'
                 } ${isLast ? 'animate-pulse-slow' : ''}`}
               >
                 {verifying ? (
@@ -109,23 +109,26 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
                 )}
               </div>
               {!isLast && (
-                <div className="w-px flex-1 min-h-[20px] bg-slate-200" />
+                <div className="w-px flex-1 min-h-[20px] bg-border" />
               )}
             </div>
             <div className="pb-3 min-w-0">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-medium text-slate-700 truncate">
+                <p className="text-xs font-mono text-text truncate">
                   {hop.relayerAlias}
                   {isYou && (
-                    <span className="text-xs text-slate-400 font-normal ml-1">(you)</span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim ml-1">(YOU)</span>
                   )}
                 </p>
                 {!verifying && result && (
-                  <CheckCircle size={12} className="text-green-500 shrink-0" />
+                  <CheckCircle size={11} className="text-accent shrink-0" />
+                )}
+                {!verifying && !result && (
+                  <AlertCircle size={11} className="text-alert shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-slate-400">
-                relayed {timeAgo(hop.receivedAt)}
+              <p className="text-[10px] font-mono uppercase tracking-wider text-text-dim">
+                RELAYED {timeAgo(hop.receivedAt).toUpperCase()}
               </p>
             </div>
           </div>
@@ -133,8 +136,8 @@ export function HopChain({ messageId, hops, authorPubkey, authorAlias }: Props) 
       })}
 
       {hops.length === 0 && (
-        <p className="text-xs text-slate-400 ml-10 animate-fade-in">
-          This message hasn't been relayed yet — it only exists on this device.
+        <p className="text-[10px] font-mono uppercase tracking-wider text-text-dim ml-10 animate-fade-in">
+          NOT RELAYED YET — ONLY ON THIS DEVICE
         </p>
       )}
     </div>

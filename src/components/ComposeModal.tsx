@@ -33,7 +33,6 @@ export function ComposeModal({ replaceMessageId, onCloseReplace }: Props = {}) {
   const isReplacing = !!replaceMessageId
   const isOpen = isReplacing || composeOpen
 
-  // Pre-fill when editing
   useEffect(() => {
     if (replaceMessageId) {
       getMessage(replaceMessageId).then((msg) => {
@@ -96,41 +95,42 @@ export function ComposeModal({ replaceMessageId, onCloseReplace }: Props = {}) {
   }
 
   return (
-    <>
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg/80 backdrop-blur-sm transition-opacity duration-200 ${
+        isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={close}
+    >
       <div
-        className={`fixed inset-0 z-50 bg-black/30 transition-opacity duration-200 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={close}
-      />
-
-      <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl shadow-2xl max-w-md mx-auto transition-transform duration-200 ease-out ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-md max-h-[85vh] flex flex-col bg-surface border border-border-mid transition-all duration-200 ease-out ${
+          isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'
         }`}
       >
-        <div className="p-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-slate-900">
-              {isReplacing ? 'Edit post' : 'New post'}
-            </h3>
-            <button
-              onClick={close}
-              className="p-1 text-slate-400 hover:text-slate-600 transition-colors duration-150"
-            >
-              <X size={20} />
-            </button>
-          </div>
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 pb-0 shrink-0">
+          <h3 className="text-xs font-mono uppercase tracking-wider text-text-muted">
+            {isReplacing ? 'EDIT POST' : 'NEW POST'}
+          </h3>
+          <button
+            onClick={close}
+            className="p-1 text-text-muted hover:text-text transition-colors duration-150"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="p-5 pt-4 overflow-y-auto flex-1">
 
           {/* Replace banner */}
           {isReplacing && (
-            <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg mb-3">
-              Editing your post. Previous version will be replaced in the mesh.
+            <div className="text-[11px] font-mono uppercase tracking-wider text-accent border border-accent-dim px-3 py-2 mb-3">
+              EDITING — PREVIOUS VERSION WILL BE REPLACED
             </div>
           )}
 
-          {/* Type selector — disabled when replacing */}
+          {/* Type selector */}
           {!isReplacing && (
             <div className="flex gap-2 mb-3">
               {(['news', 'alert', 'drop'] as const).map((t) => (
@@ -140,49 +140,50 @@ export function ComposeModal({ replaceMessageId, onCloseReplace }: Props = {}) {
                     setType(t)
                     if (t === 'alert') setAnonymous(false)
                   }}
-                  className={`px-3 py-1 text-sm rounded-full border transition-colors duration-150 ${
+                  className={`flex-1 px-3 py-2 text-[11px] font-mono uppercase tracking-wider border transition-colors duration-150 ${
                     type === t
                       ? t === 'alert'
-                        ? 'bg-red-50 border-red-300 text-red-700'
-                        : 'bg-slate-900 border-slate-900 text-white'
-                      : 'border-slate-200 text-slate-500'
+                        ? 'border-alert text-alert bg-alert/5'
+                        : 'border-accent text-accent bg-accent-glow'
+                      : 'border-border text-text-muted hover:border-border-mid'
                   }`}
                 >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {t.toUpperCase()}
                 </button>
               ))}
             </div>
           )}
 
+          {/* Anonymous checkbox */}
           {canBeAnonymous && (
-            <label className="flex items-center gap-2 mb-3 cursor-pointer">
+            <label className="flex items-center gap-2 mb-3 cursor-pointer text-[11px] font-mono uppercase tracking-wider text-text-muted">
               <input
                 type="checkbox"
                 checked={anonymous}
                 onChange={(e) => setAnonymous(e.target.checked)}
-                className="rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+                className="border border-border bg-surface-2 text-accent focus:ring-1 focus:ring-accent w-3.5 h-3.5"
               />
-              <span className="text-sm text-slate-600">Post anonymously</span>
+              POST ANONYMOUSLY
             </label>
           )}
 
           {/* Zone selector */}
           {!isReplacing && (
             <div className="mb-3">
-              <label className="text-xs text-slate-500 mb-1 block">Zone</label>
+              <label className="text-[10px] font-mono uppercase tracking-wider text-text-dim mb-2 block">ZONE</label>
               <div className="flex gap-1.5 flex-wrap">
                 {ZONES.map((z) => (
                   <button
                     key={z}
                     type="button"
                     onClick={() => setZone(z)}
-                    className={`px-2.5 py-1 text-xs rounded-full border transition-colors duration-150 ${
+                    className={`px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider border transition-colors duration-150 ${
                       zone === z
-                        ? 'bg-slate-900 border-slate-900 text-white'
-                        : 'border-slate-200 text-slate-500'
+                        ? 'border-accent text-accent bg-accent-glow'
+                        : 'border-border text-text-muted hover:border-border-mid'
                     }`}
                   >
-                    {z.charAt(0).toUpperCase() + z.slice(1)}
+                    {z.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -192,66 +193,73 @@ export function ComposeModal({ replaceMessageId, onCloseReplace }: Props = {}) {
           {/* Alert category */}
           {isAlert && (
             <div className="mb-3">
-              <label className="text-xs text-slate-500 mb-1 block">Category</label>
+              <label className="text-[10px] font-mono uppercase tracking-wider text-text-dim mb-2 block">CATEGORY</label>
               <div className="flex gap-1.5 flex-wrap">
                 {ALERT_CATEGORIES.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setAlertCategory(c)}
-                    className={`px-2.5 py-1 text-xs rounded-full border transition-colors duration-150 ${
+                    className={`px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider border transition-colors duration-150 ${
                       alertCategory === c
-                        ? 'bg-red-50 border-red-300 text-red-700'
-                        : 'border-slate-200 text-slate-500'
+                        ? 'border-alert text-alert bg-alert/5'
+                        : 'border-border text-text-muted hover:border-border-mid'
                     }`}
                   >
-                    {c.charAt(0).toUpperCase() + c.slice(1)}
+                    {c.toUpperCase()}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
+          {/* Location input */}
           {isAlert && (
             <input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Location (e.g. Central Clinic, Main Road)"
-              className="w-full px-3 py-2 mb-3 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+              className="w-full px-3 py-2.5 mb-3 text-sm font-body bg-surface-2 border border-border text-text placeholder:text-text-dim focus:outline-none focus:border-accent transition-colors duration-150"
             />
           )}
 
+          {/* Textarea */}
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
             placeholder={isAlert ? 'Describe the emergency...' : "What's happening in your area?"}
-            rows={4}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-slate-50 text-slate-800 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-1 focus:ring-slate-400"
+            rows={3}
+            className="w-full px-3 py-2.5 text-sm font-body bg-surface-2 border border-border text-text placeholder:text-text-dim resize-none focus:outline-none focus:border-accent transition-colors duration-150"
           />
 
-          <div className="flex items-center justify-between mt-1 mb-3">
-            <span className={`text-xs ${content.length > MAX_CHARS - 20 ? 'text-red-500' : 'text-slate-400'}`}>
+          {/* Char counter */}
+          <div className="flex items-center justify-between mt-1 mb-2">
+            <span className={`text-[10px] font-mono uppercase tracking-wider ${content.length > MAX_CHARS - 20 ? 'text-alert' : 'text-text-dim'}`}>
               {content.length}/{MAX_CHARS}
             </span>
-            {error && <span className="text-xs text-red-500">{error}</span>}
+            {error && <span className="text-[10px] font-mono uppercase tracking-wider text-alert">{error}</span>}
           </div>
 
+        </div>
+
+        {/* Fixed footer with submit button */}
+        <div className="px-4 py-3 border-t border-border shrink-0">
           <button
             onClick={handlePost}
             disabled={!isValid || posting}
-            className={`w-full py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
+            className={`w-full py-2.5 text-xs font-mono uppercase tracking-[0.2em] border transition-all duration-150 active:scale-[0.98] ${
               isValid && !posting
                 ? isAlert
-                  ? 'bg-red-600 text-white active:bg-red-700'
-                  : 'bg-slate-900 text-white active:bg-slate-800'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-alert/10 border-alert text-alert hover:bg-alert/20'
+                  : 'bg-accent/10 border-accent text-accent hover:bg-accent/20'
+                : 'bg-surface border-border text-text-dim cursor-not-allowed'
             }`}
           >
-            {posting ? 'Posting...' : isReplacing ? 'Update' : isAlert ? 'Post Alert' : 'Post'}
+            {posting ? 'POSTING...' : isReplacing ? 'UPDATE' : isAlert ? 'POST ALERT' : 'POST'}
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }

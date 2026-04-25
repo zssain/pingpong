@@ -36,7 +36,7 @@ import { sha256, bytesToHex } from './crypto'
  */
 export function canonicalize(msg: Message): Uint8Array {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { signature, hops, hidden, ...rest } = msg
+  const { id, signature, hops, hidden, ...rest } = msg
 
   // Sort keys alphabetically for deterministic output
   const sorted: Record<string, unknown> = {}
@@ -113,8 +113,8 @@ if (import.meta.env.DEV) {
   }
 
   // Also verify that signature, hops, and hidden were stripped
-  if (!aStr.includes('"signature"') && !aStr.includes('"hops"') && !aStr.includes('"hidden"')) {
-    console.log('[canonical] self-test passed — signature/hops/hidden correctly stripped')
+  if (!aStr.includes('"signature"') && !aStr.includes('"hops"') && !aStr.includes('"hidden"') && !aStr.includes('"id"')) {
+    console.log('[canonical] self-test passed — id/signature/hops/hidden correctly stripped')
   } else {
     console.error('[canonical] SELF-TEST FAILED — excluded fields found in output!', aStr)
   }

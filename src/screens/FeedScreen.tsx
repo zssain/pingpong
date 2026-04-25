@@ -8,6 +8,7 @@ import type { Zone } from '../lib/zones'
 export function FeedScreen() {
   const messages = useMessagesStore((s) => s.messages)
   const loadMessages = useMessagesStore((s) => s.loadMessages)
+  const recentlyArrivedIds = useMessagesStore((s) => s.recentlyArrivedIds)
   const [zone, setZone] = useState<Zone>('all')
 
   useEffect(() => {
@@ -26,13 +27,16 @@ export function FeedScreen() {
         <ZoneFilter selected={zone} onChange={setZone} />
 
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-sm text-slate-400">
-              No posts yet. Tap the + to share something.
+          <div className="text-center py-20 space-y-3">
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-dim">
+              FEED EMPTY
+            </div>
+            <p className="text-xs font-mono text-text-muted">
+              Tap + to share something.
             </p>
           </div>
         ) : (
-          filtered.map((msg, i) => <MessageCard key={msg.id} message={msg} index={i} />)
+          filtered.map((msg, i) => <MessageCard key={msg.id} message={msg} index={i} isNew={recentlyArrivedIds.has(msg.id)} />)
         )}
       </div>
       <FAB />

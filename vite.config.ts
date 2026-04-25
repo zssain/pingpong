@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+  },
   plugins: [
     react(),
     VitePWA({
@@ -16,11 +19,11 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        name: 'Offline Mesh',
-        short_name: 'Mesh',
+        name: 'Wisp',
+        short_name: 'Wisp',
         description: 'Offline peer-to-peer communication',
-        theme_color: '#0B3D91',
-        background_color: '#ffffff',
+        theme_color: '#0E0F11',
+        background_color: '#0E0F11',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

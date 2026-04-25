@@ -9,6 +9,7 @@ import type { Zone } from '../lib/zones'
 export function AlertsScreen() {
   const messages = useMessagesStore((s) => s.messages)
   const loadMessages = useMessagesStore((s) => s.loadMessages)
+  const recentlyArrivedIds = useMessagesStore((s) => s.recentlyArrivedIds)
   const [zone, setZone] = useState<Zone>('all')
 
   useEffect(() => {
@@ -31,12 +32,14 @@ export function AlertsScreen() {
         <ZoneFilter selected={zone} onChange={setZone} />
 
         {sorted.length === 0 ? (
-          <div className="text-center py-16">
-            <AlertTriangle size={32} className="mx-auto text-slate-300 mb-3" />
-            <p className="text-sm text-slate-400">No active alerts.</p>
+          <div className="text-center py-20 space-y-3">
+            <AlertTriangle size={28} className="mx-auto text-text-dim" />
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-text-dim">
+              NO ACTIVE ALERTS
+            </div>
           </div>
         ) : (
-          sorted.map((msg, i) => <MessageCard key={msg.id} message={msg} index={i} />)
+          sorted.map((msg, i) => <MessageCard key={msg.id} message={msg} index={i} isNew={recentlyArrivedIds.has(msg.id)} />)
         )}
       </div>
       <FAB />

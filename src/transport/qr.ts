@@ -16,9 +16,9 @@ import { sha256, bytesToHex } from '../lib/crypto'
  */
 export async function encodeToQR(text: string): Promise<string> {
   return QRCode.toDataURL(text, {
-    errorCorrectionLevel: 'M',
-    margin: 2,
-    width: 300,
+    errorCorrectionLevel: 'L',
+    margin: 1,
+    width: 400,
   })
 }
 
@@ -53,7 +53,7 @@ export interface QRFrame {
  */
 export async function chunkForAnimatedQR(
   text: string,
-  chunkSize = 350,
+  chunkSize = 800,
 ): Promise<string[]> {
   const pid = await shortHash(text)
   const chunks: string[] = []

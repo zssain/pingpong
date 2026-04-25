@@ -25,7 +25,6 @@ export function QRDisplay(props: Props) {
       ? props.frames[0]
       : props.text
 
-  // Generate QR image whenever the current text changes
   useEffect(() => {
     let cancelled = false
     if (currentText) {
@@ -36,33 +35,46 @@ export function QRDisplay(props: Props) {
     return () => { cancelled = true }
   }, [currentText])
 
-  // Cycle frames at 2 fps for animated mode
+  // Cycle frames — slower for fewer frames, faster for many
   useEffect(() => {
     if (!isAnimated) return
+    const frameCount = props.frames!.length
+    // 2-3 frames: 1.5s per frame; 4-10: 800ms; 10+: 500ms
+    const interval = frameCount <= 3 ? 1500 : frameCount <= 10 ? 800 : 500
     intervalRef.current = setInterval(() => {
-      setFrameIndex((i) => (i + 1) % props.frames!.length)
-    }, 500)
+      setFrameIndex((i) => (i + 1) % frameCount)
+    }, interval)
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [isAnimated, props.frames])
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      {dataUrl ? (
-        <img
-          src={dataUrl}
-          alt="QR Code"
-          className="w-64 h-64 rounded-lg border border-slate-200"
-        />
-      ) : (
-        <div className="w-64 h-64 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center">
-          <span className="text-sm text-slate-400">Generating...</span>
-        </div>
-      )}
+    <div className="flex flex-col items-center gap-3">
+      <div className="relative">
+        <span className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-accent" />
+        <span className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-accent" />
+        <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-accent" />
+        <span className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-accent" />
+        {dataUrl ? (
+          <div className="w-64 h-64 bg-white p-3 flex items-center justify-center">
+            <img
+              src={dataUrl}
+              alt="QR Code"
+              className="w-full h-full"
+            />
+          </div>
+        ) : (
+          <div className="w-64 h-64 bg-surface-2 border border-border flex items-center justify-center">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim">
+              GENERATING
+            </span>
+          </div>
+        )}
+      </div>
       {isAnimated && (
-        <span className="text-xs text-slate-400">
-          Frame {frameIndex + 1} of {props.frames!.length}
+        <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
+          FRAME {frameIndex + 1} / {props.frames!.length}
         </span>
       )}
     </div>

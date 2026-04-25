@@ -2,21 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .btn-primary {
+    @apply px-4 py-3 text-xs font-mono uppercase tracking-[0.2em]
+      border border-accent text-accent bg-accent/5
+      hover:bg-accent/15 active:scale-[0.98]
+      transition-all duration-150;
+  }
+  .btn-secondary {
+    @apply px-4 py-3 text-xs font-mono uppercase tracking-[0.2em]
+      border border-border text-text-muted
+      hover:border-border-mid hover:text-text
+      active:scale-[0.98] transition-all duration-150;
+  }
+  .btn-tertiary {
+    @apply text-[10px] font-mono uppercase tracking-wider
+      text-text-muted hover:text-text
+      transition-colors duration-150;
+  }
+  .btn-danger {
+    @apply px-4 py-3 text-xs font-mono uppercase tracking-[0.2em]
+      border border-alert text-alert bg-alert/10
+      hover:bg-alert/20 active:scale-[0.98]
+      transition-all duration-150;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  html, body, #root {
+    background-color: #0E0F11;
+    color: #E8E6E1;
+    font-family: 'DM Mono', ui-monospace, monospace;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+::selection {
+  background: rgba(212, 165, 116, 0.25);
+  color: #E8E6E1;
+}
+
+/* Subtle film grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+}
+
+/* Subtle radial vignette */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(212, 165, 116, 0.04) 0%, transparent 50%);
+}
+
+/* Webkit scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #16181B; }
+::-webkit-scrollbar-thumb { background: #2A2D31; }
+::-webkit-scrollbar-thumb:hover { background: #3A3E44; }
+
+/* Preserve existing print styles */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .poster,
-  .poster * {
-    visibility: visible;
-  }
-  .poster {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  .no-print {
-    display: none !important;
-  }
+  body * { visibility: hidden; }
+  .poster, .poster * { visibility: visible; }
+  .poster { position: absolute; left: 0; top: 0; width: 100%; }
+  .no-print { display: none !important; }
 }
