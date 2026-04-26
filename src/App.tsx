@@ -3,6 +3,7 @@ import { startTtlSweeper } from './db'
 import { useIdentityStore } from './store/identity'
 import { useUiStore } from './store/ui'
 import { useMessagesStore } from './store/messages'
+import { useGraphStore } from './store/graph'
 import { Layout } from './components/Layout'
 import { ComposeModal } from './components/ComposeModal'
 import { MessageDetailModal } from './components/MessageDetailModal'
@@ -37,6 +38,7 @@ function App() {
   const activeTab = useUiStore((s) => s.activeTab)
   const loadIdentity = useIdentityStore((s) => s.loadIdentity)
   const markRecentlyArrived = useMessagesStore((s) => s.markRecentlyArrived)
+  const recordHop = useGraphStore((s) => s.recordHop)
 
   useEffect(() => {
     const handler = () => setOfflineReady(true)
@@ -45,17 +47,23 @@ function App() {
       const id = (e as CustomEvent).detail?.id
       if (id) markRecentlyArrived(id)
     }
+    const hopHandler = (e: Event) => {
+      const d = (e as CustomEvent).detail
+      if (d) recordHop(d.from, d.to, d.msgId, d.fromAlias, d.toAlias)
+    }
     window.addEventListener('sw-offline-ready', handler)
     window.addEventListener('sw-registered', handler)
     window.addEventListener('open-mesh-graph', meshHandler)
     window.addEventListener('mesh:message-arrived', arrivalHandler)
+    window.addEventListener('mesh:record-hop', hopHandler)
     return () => {
       window.removeEventListener('sw-offline-ready', handler)
       window.removeEventListener('sw-registered', handler)
       window.removeEventListener('open-mesh-graph', meshHandler)
       window.removeEventListener('mesh:message-arrived', arrivalHandler)
+      window.removeEventListener('mesh:record-hop', hopHandler)
     }
-  }, [markRecentlyArrived])
+  }, [markRecentlyArrived, recordHop])
 
   useEffect(() => {
     loadIdentity()

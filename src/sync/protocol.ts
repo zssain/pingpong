@@ -180,9 +180,15 @@ export async function ingestReceivedMessage(
   msg.hidden = false
   await addMessage(msg)
 
-  // Notify UI that a new message arrived (for arrival animation)
+  // Notify UI that a new message arrived (for arrival animation + graph)
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('mesh:message-arrived', { detail: { id: msg.id } }))
+    // Record hop for mesh graph visualization
+    if (msg.authorPubkey) {
+      window.dispatchEvent(new CustomEvent('mesh:record-hop', {
+        detail: { from: msg.authorPubkey, to: myIdentity.publicKey, msgId: msg.id, fromAlias: msg.authorAlias, toAlias: myAlias }
+      }))
+    }
   }
 
   // ── Step 8: Record the peers we've seen ──────────────────────────

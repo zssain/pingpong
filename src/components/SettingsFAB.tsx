@@ -38,7 +38,7 @@ export function SettingsFAB({ onMeshOpen, onMyHandleOpen, onAboutOpen }: Props) 
   ]
 
   return (
-    <div className="fixed top-3 right-3 z-40">
+    <div className="fixed top-2 right-14 z-[55]">
       {isOpen && <div onClick={() => setIsOpen(false)} className="fixed inset-0 z-[-1]" aria-hidden />}
 
       <button
