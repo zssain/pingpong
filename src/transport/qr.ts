@@ -10,9 +10,9 @@ import { sha256, bytesToHex } from '../lib/crypto'
  */
 export async function encodeToQR(text: string): Promise<string> {
   return QRCode.toDataURL(text, {
-    errorCorrectionLevel: 'L',
-    margin: 1,
-    width: 400,
+    errorCorrectionLevel: 'M',
+    margin: 2,
+    width: 600,
   })
 }
 

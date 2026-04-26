@@ -136,7 +136,7 @@ export function QRScanner({ mode, onComplete, onError }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative w-72 h-72">
+      <div className="relative w-80 h-80">
         <span className="absolute -top-1 -left-1 w-3 h-3 border-t border-l border-accent z-10" />
         <span className="absolute -top-1 -right-1 w-3 h-3 border-t border-r border-accent z-10" />
         <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-accent z-10" />

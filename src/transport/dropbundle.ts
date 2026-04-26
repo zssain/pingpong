@@ -30,9 +30,9 @@ interface BundleOpts {
 export async function buildDropBundle(opts: BundleOpts = {}): Promise<string> {
   const {
     includeNews = true,
-    newsLimit = 10,
+    newsLimit = 5,
     includeAlerts = true,
-    alertLimit = 3,
+    alertLimit = 2,
   } = opts
 
   const messages: Message[] = []

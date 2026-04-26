@@ -19,7 +19,7 @@ import { gzipString, gunzipString, uint8ToBase64, base64ToUint8 } from '../lib/c
  * @param maxMessages - Max messages to include (default 50).
  * @returns Base64 string ready for QR chunking.
  */
-export async function buildOfflinePayload(maxMessages = 50): Promise<string> {
+export async function buildOfflinePayload(maxMessages = 10): Promise<string> {
   const messages = await getVisibleMessages()
   const batch = messages.slice(0, maxMessages)
   const json = JSON.stringify(batch)

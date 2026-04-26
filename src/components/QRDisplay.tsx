@@ -57,7 +57,7 @@ export function QRDisplay(props: Props) {
         <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b border-l border-accent" />
         <span className="absolute -bottom-1 -right-1 w-3 h-3 border-b border-r border-accent" />
         {dataUrl ? (
-          <div className="w-72 h-72 bg-white p-3 flex items-center justify-center">
+          <div className="w-80 h-80 bg-white p-3 flex items-center justify-center">
             <img
               src={dataUrl}
               alt="QR Code"
@@ -65,7 +65,7 @@ export function QRDisplay(props: Props) {
             />
           </div>
         ) : (
-          <div className="w-72 h-72 bg-surface-2 border border-border flex items-center justify-center">
+          <div className="w-80 h-80 bg-surface-2 border border-border flex items-center justify-center">
             <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim">
               GENERATING
             </span>
