@@ -26,6 +26,7 @@ export function DropsScreen() {
   const [posterOpen, setPosterOpen] = useState(false)
   const [result, setResult] = useState<{ accepted: number; rejected: number } | null>(null)
   const [preview, setPreview] = useState({ news: 0, alerts: 0 })
+  const [pasteCode, setPasteCode] = useState('')
 
   const appendEvent = useSyncStore((s) => s.appendEvent)
   const showToast = useUiStore((s) => s.showToast)
@@ -56,7 +57,7 @@ export function DropsScreen() {
     } catch { setResult({ accepted: 0, rejected: 0 }); setStep('done') }
   }, [appendEvent, showToast])
 
-  const reset = useCallback(() => { setStep('idle'); setFrames([]); setRawPayload(''); setResult(null) }, [])
+  const reset = useCallback(() => { setStep('idle'); setFrames([]); setRawPayload(''); setResult(null); setPasteCode('') }, [])
 
   return (
     <>
@@ -122,11 +123,9 @@ export function DropsScreen() {
                   </button>
                   <button onClick={reset} className={`flex-1 ${BTN_PRIMARY}`}>DONE</button>
                 </div>
-                {import.meta.env.DEV && (
-                  <button onClick={() => { navigator.clipboard.writeText(rawPayload); showToast('Payload copied') }} className={BTN_TERTIARY}>
-                    COPY PAYLOAD (DEV)
-                  </button>
-                )}
+                <button onClick={() => { navigator.clipboard.writeText(rawPayload); showToast('Code copied — paste on other device') }} className={BTN_SECONDARY}>
+                  COPY CODE
+                </button>
               </div>
             )}
           </div>
@@ -149,6 +148,27 @@ export function DropsScreen() {
               <div className="space-y-4 animate-fade-in text-center w-full max-w-xs">
                 <h3 className={HEADING}>SCANNING POSTER</h3>
                 <QRScanner mode="animated" onComplete={onScanComplete} />
+
+                <div className="flex items-center gap-3 py-1">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim">OR PASTE CODE</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+
+                <textarea
+                  value={pasteCode}
+                  onChange={(e) => setPasteCode(e.target.value)}
+                  placeholder="Paste the code from the other device..."
+                  rows={3}
+                  className="w-full px-3 py-2 text-xs font-mono bg-surface-2 border border-border text-text placeholder:text-text-dim resize-none focus:outline-none focus:border-accent transition-colors duration-150"
+                />
+                <button
+                  onClick={() => { if (pasteCode.trim()) onScanComplete(pasteCode.trim()) }}
+                  disabled={!pasteCode.trim()}
+                  className={pasteCode.trim() ? BTN_PRIMARY : 'w-full py-3 text-xs font-mono uppercase tracking-[0.2em] border border-border text-text-dim cursor-not-allowed'}
+                >
+                  IMPORT
+                </button>
                 <button onClick={reset} className={BTN_TERTIARY}>CANCEL</button>
               </div>
             )}

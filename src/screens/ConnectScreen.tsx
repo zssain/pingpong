@@ -74,8 +74,10 @@ export function ConnectScreen() {
   const [answerFrames, setAnswerFrames] = useState<string[]>([])
   const [peerAlias, setPeerAlias] = useState<string | null>(null)
   const [offlineFrames, setOfflineFrames] = useState<string[]>([])
+  const [rawOfflinePayload, setRawOfflinePayload] = useState('')
   const [offlineResult, setOfflineResult] = useState<{ accepted: number; rejected: number } | null>(null)
   const [showTier1, setShowTier1] = useState(false)
+  const [pasteCode, setPasteCode] = useState('')
 
   const peerRef = useRef<MeshPeer | null>(null)
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -249,8 +251,10 @@ export function ConnectScreen() {
   const startOfflineShare = useCallback(async () => {
     try {
       setStep('offline-share'); setStatus('Preparing messages...')
-      const b64 = await buildOfflinePayload(); const frames = await chunkForAnimatedQR(b64)
-      setOfflineFrames(frames); setStatus(`${frames.length} QR frames — hold steady`)
+      const b64 = await buildOfflinePayload()
+      setRawOfflinePayload(b64)
+      const frames = await chunkForAnimatedQR(b64)
+      setOfflineFrames(frames); setStatus(`${frames.length} QR frame${frames.length !== 1 ? 's' : ''} — hold steady`)
     } catch { setStep('error'); setErrorMsg('Failed to build payload') }
   }, [])
 
@@ -277,8 +281,8 @@ export function ConnectScreen() {
     peerRef.current?.destroy(); peerRef.current = null
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
     clearHandshakeTimer(); setStep('idle'); setStatus(''); setSent(0); setReceived(0)
-    setErrorMsg(''); setOfferFrames([]); setAnswerFrames([]); setOfflineFrames([]); setOfflineResult(null)
-    setPeerAlias(null); setShowTier1(false); sentDoneRef.current = false
+    setErrorMsg(''); setOfferFrames([]); setAnswerFrames([]); setOfflineFrames([]); setRawOfflinePayload(''); setOfflineResult(null)
+    setPeerAlias(null); setShowTier1(false); setPasteCode(''); sentDoneRef.current = false
   }, [clearHandshakeTimer])
 
   // ── Network badge ──────────────────────────────────────────────────
@@ -386,6 +390,14 @@ export function ConnectScreen() {
             </div>
           )}
           <p className={SUBTEXT}>{status}</p>
+          {rawOfflinePayload && (
+            <button
+              onClick={() => { navigator.clipboard.writeText(rawOfflinePayload); showToast('Code copied — paste on other device') }}
+              className={BTN_SECONDARY}
+            >
+              COPY CODE
+            </button>
+          )}
           <button onClick={reset} className={BTN_PRIMARY}>DONE</button>
         </div>
       )}
@@ -393,9 +405,29 @@ export function ConnectScreen() {
       {/* ── Offline scan ── */}
       {step === 'offline-scan' && (
         <div className="space-y-4 animate-fade-in text-center w-full max-w-xs">
-          <h3 className={HEADING}>SCANNING MESSAGES</h3>
+          <h3 className={HEADING}>RECEIVE MESSAGES</h3>
           <QRScanner mode="animated" onComplete={onOfflinePayloadScanned} />
-          <p className={SUBTEXT}>{status}</p>
+
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-text-dim">OR PASTE CODE</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          <textarea
+            value={pasteCode}
+            onChange={(e) => setPasteCode(e.target.value)}
+            placeholder="Paste the code from the other device here..."
+            rows={3}
+            className="w-full px-3 py-2 text-xs font-mono bg-surface-2 border border-border text-text placeholder:text-text-dim resize-none focus:outline-none focus:border-accent transition-colors duration-150"
+          />
+          <button
+            onClick={() => { if (pasteCode.trim()) onOfflinePayloadScanned(pasteCode.trim()) }}
+            disabled={!pasteCode.trim()}
+            className={`${pasteCode.trim() ? BTN_PRIMARY : 'w-full py-3 text-xs font-mono uppercase tracking-[0.2em] border border-border text-text-dim cursor-not-allowed'}`}
+          >
+            IMPORT
+          </button>
           <button onClick={reset} className={BTN_TERTIARY}>CANCEL</button>
         </div>
       )}
