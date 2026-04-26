@@ -154,7 +154,7 @@ function Conversation({
   }, [text, sending, thread.pubkey, onRefresh])
 
   return (
-    <div className="flex flex-col h-full bg-bg">
+    <div className="flex flex-col h-[calc(100vh-48px-80px)] bg-bg">
       {/* Top bar */}
       <div className="flex items-center gap-3 p-3 border-b border-border shrink-0 bg-surface">
         <button onClick={onBack} className="p-1 text-text-muted hover:text-accent transition-colors duration-150">
