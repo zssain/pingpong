@@ -135,17 +135,17 @@ function Conversation({
       const { ciphertext, nonce } = encryptForRecipient(text.trim(), thread.pubkey, identity.privateKey)
       const content = JSON.stringify({ ct: ciphertext, nc: nonce })
       const timestamp = Date.now()
+      const { deriveAlias } = await import('../lib/identity')
+      const alias = await deriveAlias(identity.publicKey)
       const msg: Message = {
         id: '', type: 'dm', content,
-        authorPubkey: identity.publicKey, authorAlias: undefined,
+        authorPubkey: identity.publicKey, authorAlias: alias,
         recipientPub: thread.pubkey, timestamp,
         ttl: timestamp + TTL.DM, priority: PRIORITY.DROP, hops: [],
       }
       msg.id = await computeMessageId(msg)
       const canonical = canonicalize(msg)
       msg.signature = await signMessage(canonical, identity.privateKey)
-      const { deriveAlias } = await import('../lib/identity')
-      msg.authorAlias = await deriveAlias(identity.publicKey)
       await addMessage(msg)
       setText('')
       onRefresh()
