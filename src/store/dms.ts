@@ -74,12 +74,15 @@ export const useDmsStore = create<DmsState>((set, get) => ({
       try {
         const parsed = JSON.parse(m.content) as { ct: string; nc: string }
         if (parsed.ct && parsed.nc) {
-          // Determine who sent it to figure out keys
-          const senderPub = m.authorPubkey!
+          // nacl.box.open needs the OTHER party's public key
+          // If I sent it: other party = recipient (pubkey param)
+          // If they sent it: other party = sender (authorPubkey)
+          const isMyMessage = m.authorPubkey === myPub
+          const otherPub = isMyMessage ? pubkey : m.authorPubkey!
           decryptedText = decryptFromSender(
             parsed.ct,
             parsed.nc,
-            senderPub,
+            otherPub,
             identity.privateKey,
           )
         }
