@@ -56,6 +56,7 @@ export async function ingestOfflinePayload(
     if (result.accepted) {
       accepted++
     } else {
+      console.warn('[offline-ingest] Rejected:', result.reason, msg.type, msg.id?.slice(0, 8))
       rejected++
     }
   }

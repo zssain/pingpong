@@ -112,6 +112,7 @@ export async function ingestReceivedMessage(
   // what the sender claims, the message has been tampered with.
   const expectedId = await computeMessageId(msg)
   if (expectedId !== msg.id) {
+    console.warn('[ingest] ID mismatch:', { expected: expectedId, got: msg.id, type: msg.type, content: msg.content.slice(0, 50) })
     return { accepted: false, reason: 'ID mismatch — message may be tampered' }
   }
 
@@ -129,6 +130,7 @@ export async function ingestReceivedMessage(
     const canonical = canonicalize(msg)
     const valid = await verifyMessage(msg.signature, canonical, msg.authorPubkey)
     if (!valid) {
+      console.warn('[ingest] Sig invalid:', { type: msg.type, id: msg.id.slice(0, 8), canonical: new TextDecoder().decode(canonical).slice(0, 100) })
       return { accepted: false, reason: 'Invalid author signature' }
     }
   }
@@ -153,6 +155,8 @@ export async function ingestReceivedMessage(
   if (await hasMessage(msg.id)) {
     return { accepted: false, reason: 'Already have this message (dedupe)' }
   }
+
+  console.log('[ingest] Accepting:', { type: msg.type, id: msg.id.slice(0, 8) })
 
   // ── Step 6: Append our own hop stamp ─────────────────────────────
   // We're relaying this message, so we add our own signed stamp to prove
