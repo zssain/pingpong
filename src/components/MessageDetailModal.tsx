@@ -58,18 +58,16 @@ export function MessageDetailModal() {
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg/80 backdrop-blur-sm transition-opacity duration-200 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeDetail}
-      />
-
-      {/* Panel */}
+      >
       <div
-        className={`fixed inset-x-0 bottom-0 z-50 bg-surface border-t border-border-mid max-w-lg mx-auto max-h-[85vh] flex flex-col transition-transform duration-200 ease-out ${
-          isOpen ? 'translate-y-0' : 'translate-y-full'
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full max-w-lg max-h-[85vh] flex flex-col bg-surface border border-border-mid transition-all duration-200 ease-out ${
+          isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >
         {message && (
@@ -162,6 +160,7 @@ export function MessageDetailModal() {
             </div>
           </>
         )}
+      </div>
       </div>
 
       {/* Edit compose modal */}
