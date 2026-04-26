@@ -265,7 +265,11 @@ export function ConnectScreen() {
       setStatus(`Accepted ${result.accepted} message${result.accepted !== 1 ? 's' : ''}${result.rejected > 0 ? `, rejected ${result.rejected}` : ''}.`)
       appendEvent({ t: Date.now(), kind: 'sync-complete' }); refreshPeerCount()
       if (result.accepted > 0) showToast(`${result.accepted} new message${result.accepted !== 1 ? 's' : ''} via QR sync`)
-    } catch { setStep('error'); setErrorMsg('Failed to parse QR payload') }
+    } catch (e) {
+      console.error('[offline-scan] Parse error:', e)
+      setStep('error')
+      setErrorMsg('Could not read QR payload. Make sure you are scanning a Wisp share QR, not a contact QR.')
+    }
   }, [appendEvent, refreshPeerCount, showToast])
 
   // ── Reset ──────────────────────────────────────────────────────────
